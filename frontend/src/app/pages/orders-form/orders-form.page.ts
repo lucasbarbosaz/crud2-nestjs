@@ -5,6 +5,7 @@ import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { ClientsService, Client } from '../../core/services/clients.service';
 import { ProductsService, Product } from '../../core/services/products.service';
 import { OrdersService } from '../../core/services/orders.service';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-orders-form-page',
@@ -23,7 +24,7 @@ export class OrdersFormPage implements OnInit {
   form = this.fb.group({
     clientId: ['', Validators.required],
     productId: ['', Validators.required],
-    quantity: [1, [Validators.required]],
+    quantity: [1, [Validators.required, Validators.min(1)]],
   });
 
   constructor(
@@ -39,9 +40,21 @@ export class OrdersFormPage implements OnInit {
   }
 
   addItem() {
-    if (this.form.controls.productId.invalid || this.form.controls.quantity.invalid) return;
     const productId = Number(this.form.controls.productId.value);
     const quantity = Number(this.form.controls.quantity.value);
+    if (quantity < 1) {
+      Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'warning',
+        title: 'Quantidade deve ser maior ou igual a 1',
+        showConfirmButton: false,
+        timer: 2500,
+        timerProgressBar: true,
+      });
+      return;
+    }
+    if (this.form.controls.productId.invalid || this.form.controls.quantity.invalid) return;
     const product = this.products.find((p) => p.id === productId);
     if (!product) return;
     this.items.push({ productId, quantity, descricao: product.descricao });

@@ -18,7 +18,7 @@ export class ClientsFormPage implements OnInit {
   error = '';
   private readonly fb = inject(FormBuilder);
   form = this.fb.group({
-    cnpj: ['', [Validators.required]],
+    cnpj: ['', [Validators.required, Validators.pattern(/^\d{14}$/)]],
     razaoSocial: ['', [Validators.required]],
     email: ['', [Validators.required, Validators.email]],
   });
@@ -45,8 +45,24 @@ export class ClientsFormPage implements OnInit {
     }
   }
 
+  onCnpjInput(event: Event) {
+    const target = event.target as HTMLInputElement;
+    const digits = (target.value || '').replace(/\D/g, '');
+    this.form.patchValue({ cnpj: digits }, { emitEvent: false });
+    if (digits.length !== 14) {
+      this.form.patchValue({ razaoSocial: '', email: '' }, { emitEvent: false });
+    }
+  }
+
   buscarCnpj() {
     const cnpj = this.form.get('cnpj')?.value ?? '';
+    const digits = cnpj.replace(/\D/g, '');
+    if (digits.length !== 14) {
+      this.error = 'CNPJ inválido';
+      this.form.patchValue({ razaoSocial: '', email: '' });
+      return;
+    }
+    this.error = '';
     if (!cnpj) return;
     this.cnpjLoading = true;
     this.cnpjService.lookup(cnpj).subscribe({
@@ -61,6 +77,8 @@ export class ClientsFormPage implements OnInit {
       },
       error: () => {
         this.cnpjLoading = false;
+        this.error = 'CNPJ não encontrado';
+        this.form.patchValue({ razaoSocial: '', email: '' });
       },
     });
   }
@@ -71,7 +89,7 @@ export class ClientsFormPage implements OnInit {
     this.error = '';
     const raw = this.form.getRawValue();
     const payload = {
-      cnpj: raw.cnpj ?? '',
+      cnpj: (raw.cnpj ?? '').replace(/\D/g, ''),
       razaoSocial: raw.razaoSocial ?? '',
       email: raw.email ?? '',
     };

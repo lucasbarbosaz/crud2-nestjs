@@ -22,6 +22,17 @@ export class OrdersListPage implements OnInit {
     protected readonly auth: AuthService,
   ) {}
 
+  totalQuantity(order: Order) {
+    return (order.items ?? []).reduce((total, item) => total + item.quantity, 0);
+  }
+
+  productNames(order: Order) {
+    return (order.items ?? [])
+      .map((item) => item.product?.descricao)
+      .filter((name) => !!name)
+      .join(', ');
+  }
+
   ngOnInit() {
     this.fetch();
   }

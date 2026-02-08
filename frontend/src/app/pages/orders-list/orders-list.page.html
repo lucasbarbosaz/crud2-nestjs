@@ -15,18 +15,22 @@
             <th>ID</th>
             <th>Cliente</th>
             <th>Itens</th>
+            <th>Quantidade</th>
+            <th>Produtos</th>
             <th>Data</th>
             <th class="text-end" *ngIf="auth.user?.role === 'ADMIN'">Acoes</th>
           </tr>
         </thead>
         <tbody>
           <tr *ngIf="loading">
-            <td colspan="5">Carregando...</td>
+            <td colspan="7">Carregando...</td>
           </tr>
           <tr *ngFor="let order of orders">
             <td>{{ order.id }}</td>
             <td>{{ order.client.razaoSocial }}</td>
             <td>{{ order.items.length }}</td>
+            <td>{{ totalQuantity(order) }}</td>
+            <td>{{ productNames(order) }}</td>
             <td>{{ order.createdAt | date:'short' }}</td>
             <td class="text-end" *ngIf="auth.user?.role === 'ADMIN'">
               <button
@@ -38,7 +42,7 @@
             </td>
           </tr>
           <tr *ngIf="!loading && orders.length === 0">
-            <td colspan="5">Nenhum pedido encontrado.</td>
+            <td colspan="7">Nenhum pedido encontrado.</td>
           </tr>
         </tbody>
       </table>

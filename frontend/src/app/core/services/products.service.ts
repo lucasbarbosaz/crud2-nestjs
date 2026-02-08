@@ -59,6 +59,10 @@ export class ProductsService {
     return this.http.put<Product>(`${this.baseUrl}/${productId}/images/${imageId}/default`, {});
   }
 
+  removeImage(productId: number, imageId: number) {
+    return this.http.delete<Product>(`${this.baseUrl}/${productId}/images/${imageId}`);
+  }
+
   remove(id: number) {
     return this.http.delete<{ deleted: boolean }>(`${this.baseUrl}/${id}`);
   }
