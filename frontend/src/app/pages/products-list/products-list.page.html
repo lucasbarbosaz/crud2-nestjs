@@ -1,0 +1,134 @@
+<div class="container py-4">
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    <h1 class="h4 mb-0">Produtos</h1>
+    <a class="btn btn-primary" routerLink="/produtos/novo" *ngIf="auth.user?.role === 'ADMIN'">Novo Produto</a>
+  </div>
+
+  <div class="card">
+    <div class="alert alert-danger mb-0 rounded-0" *ngIf="error">
+      {{ error }}
+    </div>
+    <div class="table-responsive">
+      <table class="table table-striped mb-0">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Imagem</th>
+            <th>Descricao</th>
+            <th>Valor</th>
+            <th>Estoque</th>
+            <th class="text-end" *ngIf="auth.user?.role === 'ADMIN'">Acoes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngIf="loading">
+            <td colspan="6">Carregando...</td>
+          </tr>
+          <ng-container *ngFor="let product of products">
+            <tr>
+              <td>{{ product.id }}</td>
+              <td>
+                <div class="d-flex align-items-center gap-2">
+                  <img
+                    [src]="getPrimaryImageUrl(product)"
+                    alt="Imagem do produto"
+                    class="border rounded"
+                    style="width: 48px; height: 48px; object-fit: cover;"
+                  >
+                  <span class="badge text-bg-secondary" *ngIf="product.images && product.images.length > 1">
+                    {{ product.images.length }} imagens
+                  </span>
+                  <button
+                    class="btn btn-sm btn-outline-secondary"
+                    type="button"
+                    *ngIf="product.images && product.images.length > 1"
+                    (click)="openImagesModal(product)"
+                  >
+                    Ver imagens
+                  </button>
+                </div>
+              </td>
+              <td>{{ product.descricao }}</td>
+              <td>R$ {{ product.valorVenda | number:'1.2-2' }}</td>
+              <td>{{ product.estoque }}</td>
+              <td class="text-end" *ngIf="auth.user?.role === 'ADMIN'">
+                <a
+                  class="btn btn-sm btn-outline-secondary me-2"
+                  routerLink="/produtos/{{ product.id }}/editar"
+                  *ngIf="auth.user?.role === 'ADMIN'"
+                >Editar</a>
+                <button
+                  class="btn btn-sm btn-outline-danger"
+                  type="button"
+                  *ngIf="auth.user?.role === 'ADMIN'"
+                  (click)="remove(product.id)"
+                >Excluir</button>
+              </td>
+            </tr>
+          </ng-container>
+          <tr *ngIf="!loading && products.length === 0">
+            <td colspan="6">Nenhum produto encontrado.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="d-flex align-items-center justify-content-between mt-3" *ngIf="totalPages > 1">
+    <button class="btn btn-outline-secondary" type="button" (click)="prevPage()" [disabled]="page <= 1">
+      Anterior
+    </button>
+    <span class="small text-muted">Página {{ page }} de {{ totalPages }}</span>
+    <button class="btn btn-outline-secondary" type="button" (click)="nextPage()" [disabled]="page >= totalPages">
+      Próxima
+    </button>
+  </div>
+</div>
+
+<div *ngIf="modalOpen">
+  <div
+    class="modal-backdrop show"
+    style="z-index: 1040;"
+    (click)="closeImagesModal()"
+  ></div>
+  <div class="modal d-block" tabindex="-1" style="z-index: 1050;">
+    <div class="modal-dialog modal-dialog-centered modal-lg" (click)="$event.stopPropagation()">
+      <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Imagens do produto</h5>
+        <button type="button" class="btn-close" aria-label="Close" (click)="closeImagesModal()"></button>
+      </div>
+      <div class="modal-body d-flex align-items-center justify-content-center gap-3">
+        <button
+          class="btn btn-outline-secondary"
+          type="button"
+          (click)="prevImage()"
+          [disabled]="modalImages.length <= 1"
+        >
+          ‹
+        </button>
+        <img
+          [src]="modalImages[modalIndex]"
+          alt="Imagem do produto"
+          class="border rounded"
+          style="max-width: 100%; max-height: 60vh; object-fit: contain;"
+        >
+        <button
+          class="btn btn-outline-secondary"
+          type="button"
+          (click)="nextImage()"
+          [disabled]="modalImages.length <= 1"
+        >
+          ›
+        </button>
+      </div>
+      <div class="modal-footer">
+        <span class="text-muted me-auto">
+          {{ modalIndex + 1 }} / {{ modalImages.length }}
+        </span>
+        <button type="button" class="btn btn-secondary" (click)="closeImagesModal()">Fechar</button>
+      </div>
+      </div>
+    </div>
+  </div>
+</div>

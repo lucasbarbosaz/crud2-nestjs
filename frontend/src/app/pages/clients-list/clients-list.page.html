@@ -1,0 +1,43 @@
+<div class="container py-4">
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    <h1 class="h4 mb-0">Clientes</h1>
+    <a class="btn btn-primary" routerLink="/clientes/novo">Novo Cliente</a>
+  </div>
+
+  <div class="card">
+    <div class="alert alert-danger mb-0 rounded-0" *ngIf="error">
+      {{ error }}
+    </div>
+    <div class="table-responsive">
+      <table class="table table-striped mb-0">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Razao Social</th>
+            <th>CNPJ</th>
+            <th>E-mail</th>
+            <th class="text-end" *ngIf="auth.user?.role === 'ADMIN'">Acoes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngIf="loading">
+            <td colspan="5">Carregando...</td>
+          </tr>
+          <tr *ngFor="let client of clients">
+            <td>{{ client.id }}</td>
+            <td>{{ client.razaoSocial }}</td>
+            <td>{{ client.cnpj }}</td>
+            <td>{{ client.email }}</td>
+            <td class="text-end" *ngIf="auth.user?.role === 'ADMIN'">
+              <a class="btn btn-sm btn-outline-secondary me-2" routerLink="/clientes/{{ client.id }}/editar">Editar</a>
+              <button class="btn btn-sm btn-outline-danger" type="button" (click)="remove(client.id)">Excluir</button>
+            </td>
+          </tr>
+          <tr *ngIf="!loading && clients.length === 0">
+            <td colspan="5">Nenhum cliente encontrado.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

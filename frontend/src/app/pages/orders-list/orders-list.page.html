@@ -1,0 +1,47 @@
+<div class="container py-4">
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    <h1 class="h4 mb-0">Pedidos</h1>
+    <a class="btn btn-primary" routerLink="/pedidos/novo">Novo Pedido</a>
+  </div>
+
+  <div class="card">
+    <div class="alert alert-danger mb-0 rounded-0" *ngIf="error">
+      {{ error }}
+    </div>
+    <div class="table-responsive">
+      <table class="table table-striped mb-0">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Cliente</th>
+            <th>Itens</th>
+            <th>Data</th>
+            <th class="text-end" *ngIf="auth.user?.role === 'ADMIN'">Acoes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngIf="loading">
+            <td colspan="5">Carregando...</td>
+          </tr>
+          <tr *ngFor="let order of orders">
+            <td>{{ order.id }}</td>
+            <td>{{ order.client.razaoSocial }}</td>
+            <td>{{ order.items.length }}</td>
+            <td>{{ order.createdAt | date:'short' }}</td>
+            <td class="text-end" *ngIf="auth.user?.role === 'ADMIN'">
+              <button
+                class="btn btn-sm btn-outline-danger"
+                type="button"
+                *ngIf="auth.user?.role === 'ADMIN'"
+                (click)="remove(order.id)"
+              >Excluir</button>
+            </td>
+          </tr>
+          <tr *ngIf="!loading && orders.length === 0">
+            <td colspan="5">Nenhum pedido encontrado.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
