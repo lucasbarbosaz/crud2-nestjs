@@ -66,7 +66,7 @@ export class ProductsController {
   @Post()
   @Roles(Role.ADMIN)
   @UseInterceptors(
-    FilesInterceptor('images', 10, {
+    FilesInterceptor('images', 5, {
       storage: diskStorage({
         destination: (_req, _file, cb) => {
           const uploadsDir = join(process.cwd(), 'uploads');
@@ -126,7 +126,7 @@ export class ProductsController {
   @Put(':id')
   @Roles(Role.ADMIN)
   @UseInterceptors(
-    FilesInterceptor('images', 10, {
+    FilesInterceptor('images', 5, {
       storage: diskStorage({
         destination: (_req, _file, cb) => {
           const uploadsDir = join(process.cwd(), 'uploads');
@@ -158,6 +158,16 @@ export class ProductsController {
   @Roles(Role.ADMIN)
   setDefaultImage(@Param('id') id: string, @Param('imageId') imageId: string) {
     return this.productsService.setDefaultImage(Number(id), Number(imageId));
+  }
+
+  @ApiOperation({ summary: 'Remover imagem do produto (ADMIN)' })
+  @ApiParam({ name: 'id', type: Number, example: 1 })
+  @ApiParam({ name: 'imageId', type: Number, example: 10 })
+  @ApiOkResponse({ description: 'Imagem removida com sucesso' })
+  @Delete(':id/images/:imageId')
+  @Roles(Role.ADMIN)
+  removeImage(@Param('id') id: string, @Param('imageId') imageId: string) {
+    return this.productsService.removeImage(Number(id), Number(imageId));
   }
 
   @ApiOperation({ summary: 'Remover produto por ID (ADMIN)' })

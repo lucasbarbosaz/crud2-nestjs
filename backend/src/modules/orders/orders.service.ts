@@ -100,8 +100,26 @@ export class OrdersService {
   }
 
   async remove(id: number) {
-    await this.findOne(id);
-    await this.ordersRepository.delete(id);
-    return { deleted: true };
+    return this.dataSource.transaction(async (manager) => {
+      const orderRepo = manager.getRepository(Order);
+      const productRepo = manager.getRepository(Product);
+
+      const order = await orderRepo.findOne({
+        where: { id },
+        relations: { items: { product: true } },
+      });
+      if (!order) {
+        throw new NotFoundException('Pedido não encontrado');
+      }
+
+      for (const item of order.items ?? []) {
+        if (item.product?.id) {
+          await productRepo.increment({ id: item.product.id }, 'estoque', item.quantity);
+        }
+      }
+
+      await orderRepo.delete(id);
+      return { deleted: true };
+    });
   }
 }

@@ -1,5 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { BadRequestException } from '@nestjs/common';
+﻿import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { ClientsRepository } from './clients.repository';
 import { CreateClientDto } from './dto/create-client.dto';
 import { UpdateClientDto } from './dto/update-client.dto';
@@ -11,6 +10,7 @@ export class ClientsService {
   constructor(private readonly clientsRepository: ClientsRepository) {}
 
   async create(dto: CreateClientDto) {
+    await this.assertCnpjExists(dto.cnpj);
     const existingByCnpj = await this.clientsRepository.findByCnpj(dto.cnpj);
     if (existingByCnpj) {
       throw new BadRequestException('CNPJ já cadastrado');
@@ -39,11 +39,17 @@ export class ClientsService {
 
   async update(id: number, dto: UpdateClientDto) {
     const client = await this.findOne(id);
-    if (dto.cnpj && dto.cnpj !== client.cnpj) {
-      const existingByCnpj = await this.clientsRepository.findByCnpj(dto.cnpj);
-      if (existingByCnpj) {
-        throw new BadRequestException('CNPJ já cadastrado');
+    if (dto.cnpj) {
+      const nextCnpj = dto.cnpj.replace(/\D/g, '');
+      const currentCnpj = (client.cnpj ?? '').replace(/\D/g, '');
+      if (nextCnpj !== currentCnpj) {
+        await this.assertCnpjExists(nextCnpj);
+        const existingByCnpj = await this.clientsRepository.findByCnpj(nextCnpj);
+        if (existingByCnpj) {
+          throw new BadRequestException('CNPJ já cadastrado');
+        }
       }
+      dto.cnpj = nextCnpj;
     }
     if (dto.email && dto.email !== client.email) {
       const existingByEmail = await this.clientsRepository.findByEmail(dto.email);
@@ -59,5 +65,16 @@ export class ClientsService {
     await this.findOne(id);
     await this.clientsRepository.delete(id);
     return { deleted: true };
+  }
+
+  private async assertCnpjExists(cnpj: string) {
+    const digits = (cnpj ?? '').replace(/\D/g, '');
+    if (digits.length !== 14) {
+      throw new BadRequestException('CNPJ inválido');
+    }
+    const response = await fetch(`https://publica.cnpj.ws/cnpj/${digits}`);
+    if (!response.ok) {
+      throw new BadRequestException('CNPJ não encontrado');
+    }
   }
 }

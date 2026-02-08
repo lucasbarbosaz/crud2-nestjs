@@ -40,6 +40,10 @@ export class ProductsRepository {
     await this.imageRepo.update({ id: imageId }, { isPrimary: true });
   }
 
+  deleteImage(imageId: number) {
+    return this.imageRepo.delete({ id: imageId });
+  }
+
   findAndCount(skip: number, take: number) {
     return this.repo.findAndCount({ skip, take, order: { id: 'DESC' } });
   }

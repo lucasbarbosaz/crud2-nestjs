@@ -1,4 +1,6 @@
 ﻿import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { join } from 'path';
+import { existsSync, unlinkSync } from 'fs';
 import { ProductsRepository } from './products.repository';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
@@ -14,6 +16,9 @@ export class ProductsService {
     const product = this.productsRepository.create(dto);
     const saved = await this.productsRepository.save(product);
     if (files && files.length > 0) {
+      if (files.length > 5) {
+        throw new BadRequestException('Máximo de 5 imagens por produto');
+      }
       const primaryIndex =
         typeof dto.primaryIndex === 'number' && dto.primaryIndex >= 0
           ? dto.primaryIndex
@@ -57,6 +62,10 @@ export class ProductsService {
     Object.assign(product, dto);
     const saved = await this.productsRepository.save(product);
     if (files && files.length > 0) {
+      const existingCount = saved.images?.length ?? 0;
+      if (existingCount + files.length > 5) {
+        throw new BadRequestException('Máximo de 5 imagens por produto');
+      }
       const hasPrimary = !!saved.images?.some((image) => image.isPrimary);
       const images = files.map((file, index) => {
         const image = new ProductImage();
@@ -79,6 +88,24 @@ export class ProductsService {
       throw new BadRequestException('Imagem já é a principal');
     }
     await this.productsRepository.setPrimaryImage(productId, imageId);
+    return this.findOne(productId);
+  }
+
+  async removeImage(productId: number, imageId: number) {
+    const product = await this.findOne(productId);
+    const image = (product.images ?? []).find((img) => img.id === imageId);
+    if (!image) {
+      throw new NotFoundException('Imagem não encontrada');
+    }
+    await this.productsRepository.deleteImage(imageId);
+    const filePath = join(process.cwd(), image.url.replace(/^\//, ''));
+    if (existsSync(filePath)) {
+      try {
+        unlinkSync(filePath);
+      } catch {
+        // ignore file delete errors
+      }
+    }
     return this.findOne(productId);
   }
 
