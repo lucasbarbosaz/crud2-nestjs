@@ -128,7 +128,24 @@ export class ProductsListPage implements OnInit {
       cancelButtonText: 'Cancelar',
     }).then((result) => {
       if (!result.isConfirmed) return;
-      this.productsService.remove(id).subscribe(() => this.fetch());
+      this.productsService.remove(id).subscribe({
+        next: () => this.fetch(),
+        error: (err) => {
+          const message =
+            err?.error?.message?.message ??
+            err?.error?.message ??
+            'Não foi possível excluir o produto.';
+          Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'error',
+            title: message,
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true,
+          });
+        },
+      });
     });
   }
 }

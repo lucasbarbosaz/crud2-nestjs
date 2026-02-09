@@ -1,4 +1,5 @@
 ﻿import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { QueryFailedError } from 'typeorm';
 import { join } from 'path';
 import { existsSync, unlinkSync } from 'fs';
 import { ProductsRepository } from './products.repository';
@@ -111,7 +112,16 @@ export class ProductsService {
 
   async remove(id: number) {
     await this.findOne(id);
-    await this.productsRepository.delete(id);
-    return { deleted: true };
+    try {
+      await this.productsRepository.delete(id);
+      return { deleted: true };
+    } catch (error) {
+      if (error instanceof QueryFailedError) {
+        throw new BadRequestException(
+          'Não é possível excluir o produto porque ele está vinculado a pedidos.',
+        );
+      }
+      throw error;
+    }
   }
 }
