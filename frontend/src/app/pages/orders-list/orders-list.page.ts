@@ -28,7 +28,10 @@ export class OrdersListPage implements OnInit {
 
   productNames(order: Order) {
     return (order.items ?? [])
-      .map((item) => item.product?.descricao)
+      .map((item) => {
+        const name = item.product?.descricao ?? '';
+        return name ? `${name} (x${item.quantity})` : '';
+      })
       .filter((name) => !!name)
       .join(', ');
   }
