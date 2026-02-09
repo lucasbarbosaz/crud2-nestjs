@@ -26,6 +26,13 @@ export class OrdersListPage implements OnInit {
     return (order.items ?? []).reduce((total, item) => total + item.quantity, 0);
   }
 
+  totalValue(order: Order) {
+    return (order.items ?? []).reduce((total, item) => {
+      const price = Number(item.unitPrice) || 0;
+      return total + item.quantity * price;
+    }, 0);
+  }
+
   productNames(order: Order) {
     return (order.items ?? [])
       .map((item) => {
