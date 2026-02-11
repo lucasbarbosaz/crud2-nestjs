@@ -35,8 +35,12 @@ export class OrdersService {
           (quantityByProduct.get(item.productId) ?? 0) + item.quantity,
         );
       }
-
-      const order = orderRepo.create({ client });
+      const order = orderRepo.create({
+        client,
+        clientRazaoSocialSnapshot: client.razaoSocial,
+        clientCnpjSnapshot: client.cnpj,
+        clientEmailSnapshot: client.email,
+      });
       const savedOrder = await orderRepo.save(order);
 
       const items: OrderItem[] = [];
